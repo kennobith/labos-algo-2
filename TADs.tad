@@ -1,0 +1,362 @@
+TADs
+
+#1 
+
+TAD Coord es struct<x:float,y:float>
+
+TAD Rectangulo {
+    obs vertices: seq<Coord>
+
+    proc crear(in s: seq<Coord>) : Rectangulo
+        requiere {rectangulizable(s)}
+        asegura  {res.vertices == s}
+    
+    proc rotar(inout r: Rectangulo, in angulo: float)
+        requiere {0 ≤ angulo < 2*pi}
+        asegura {rotado(old(r).vertices,r.vertices,angulo)}
+
+    proc trasladar(inout r: Rectangulo, in deltaX: float, in deltaY: float)
+        asegura  {trasladado(old(r).vertices,r.vertices,deltaX,deltaY)}
+
+    proc escalar(inout r: Rectangulo, in e: int) //mucho lio, no thanks
+        requiere {e > 0}
+        asegura  {} 
+    
+    pred rectangulizable(in s: seq<Coord>){
+        (∃ a,b,c,d: Coord)(a ∈ s ∧ b ∈ s ∧ c ∈ s ∧ d ∈ s ∧L
+                            ∧L prodPunto(a-b,c-d))
+    }
+
+    pred rotado(sinRotar: seq<Coord>, rotado: seq<Coord>, angulo: float){
+        (∀ b:Coord)(b ∈ sinRotar ⇒L (∃ c:Coord)(c ∈ rotado ∧L rotar(b,angulo) = c))
+    }
+
+    aux -(a: Coord, b: Coord) : Coord 
+        <a.x-b.x,a.y-b.y>
+
+    aux prodPunto(a: Coord, b: Coord) : float 
+        a.x*b.x + a.y*b.y;
+
+    aux rotar(v: Coord, ang: float) : Coord 
+        <norma(v)*cos(ang+theta(v)),norma(v)*sen(ang+theta(v))>;
+
+    aux norma(v: Coord) : float = sqrt(v.x*v.x+v.y*v.y)
+
+    aux theta(v: Coord) : float = safearctan(v);
+
+    aux safearctan(v: Coord) : float 
+        if v.x == 0 then 𝝅/2*signo(v.y)else arctan(v.y/v.x);
+    
+    pred trasladado(sinTrasladar: seq<Coord>, trasladado: seq<Coord>, deltaX: float, deltaY: float){
+        (∀ v: Coord)(v ∈ sinTrasladar ⇒L (∃ w: Coord)(w ∈ trasladado ∧L v.y + deltaY = w.y ∧ v.x + deltaX = w.x))
+    }
+}
+
+TAD Punto3D es tupla<Z,Z,Z>
+
+TAD Esfera {
+    obs centro: Punto3D
+    obs radio: ∈t
+
+    proc crear(in centro: Punto3D, in radio: int) : Esfera
+        requiere {radio > 0}
+        asegura  {res.centro == centro ∧ res.radio == radio}
+    
+    proc rotar(inout r: Esfera)
+        asegura  {r.centro == old(r).centro ∧ r.radio == old(r).radio}
+
+    proc trasladar(inout r: Esfera, in c: Punto3D)
+        asegura  {r.centro == c ∧ r.radio == old(r).radio}
+
+    proc escalar(inout r: Esfera, in e: int)
+        requiere {e > 0}
+        asegura  {r.centro == old(r).centro}
+        asegura  {r.radio == old(r).radio * e}  
+}
+
+#2
+
+TAD Multiconjunto<T> {
+    obs elems: conj<T x Z>
+
+    proc vacia() : Multiconjunto<T>
+        asegura  {res.elems == {}}
+
+    proc agregar(inout m: Multiconjunto<T>, in e: T)
+        asegura  {agregaElemento(m.elems,old(m).elems,e)}
+        asegura  {mantieneRestantes(m.elems,old(m).elems,e)}
+
+    proc quitar(inout m: Multiconjunto<T>, in e: T)
+        requiere {pertenece(m.elems,e)}
+        asegura  {quitaElemento(m.elems,e)}
+        asegura  {mantieneRestantes(m.elems,old(m).elems,e)}
+
+    proc cardinal(in m: Multiconjunto<T>) : Z
+        asegura  {cardinal(m.elems) == res}
+
+    proc apariciones(in m: Multiconjunto<T>, in e: T) : Z
+        requiere {pertenece(m.elems,e)}
+        asegura  {apariciones(m.elems,e,res)}
+
+    pred agregaElemento(nuevo: conj<T x Z>, viejo: conj<T x Z> , e: T) {
+        (∀ t: <T x Z>)(t ∈ viejo ∧L t[0] != e ⇒ 
+            ⇒ (∃ tup: <T x Z>)(tup[0] == e ∧ tup[1] == 1 ∧ tup ∈ nuevo))
+        ∨
+        (∃ i: Z)(i > 1 ∧ <e,i> ∈ viejo ⇒ 
+            ⇒ (∃ t: <T x Z>)(t[0] == e ∧ ∧ t[1] = i + 1  t ∈ nuevo))
+    }
+
+    pred mantieneRestantes(nuevo: conj<T x Z>, viejo: conj<T x Z> , e: T) {
+        (∀ t: <T x Z>)(t[0] != e ⇒ 
+            ⇒ (t ∈ nuevo ↔ t ∈ viejo))
+    }
+
+    pred pertenece(c: conj<T x Z>, e: T) {
+        (∃ t: <T x Z>)(t ∈ c ∧ t[0] == e ∧ t[1] > 1)
+    }
+    
+    pred quitaElemento(nuevo: conj<T x Z>, viejo: conj<T x Z> , e: T) {
+        (∃ i: Z)(i > 1 ∧ <e,i> ∈ viejo ⇒ 
+            ⇒ (∃ t: <T x Z>)(t ∈ nuevo ∧ t[0] == e ∧ t[1] = i-1))
+        ∨
+        (∃ i: Z)(i = 1 ∧ <e,i> ∈ viejo ⇒ 
+            ⇒ !(∃ t: <T x Z>)(t ∈ nuevo ∧ t[0] == e ))
+    }
+
+    aux cardinal(in m: conj<T x Z>) : Z =
+        sum t: <T x Z> :: (t ∈ m) :: t[1]
+
+    pred apariciones(m: conj<T x Z>, e: T, r: Z) {
+        (∃ t: <T x Z>)(t ∈ m ∧ t[0] = e ∧ t[1] = r)
+    }
+}
+
+TAD Multidict<K,V> { //hacer
+    obs elems: conj<K,conj<V>>
+
+    proc vacia() : Multidict<K,V>
+        asegura  {res.elems == {}}
+
+    proc definir(inout m: Multidict<K,V>, in k: K, in v: V) //Definimos
+        asegura  {defineClave(m.elems,old(m).elems,k,v)}
+        asegura  {mantieneRestantes(m.elems,old(m).elems,k,v)}
+
+    proc borrar(inout m: Multidict<K,V>, in k: K, in v: V)
+        requiere {pertenece(m.elems,e)}
+        asegura  {borraClave(m.elems,e)}
+        asegura  {mantieneRestantes(m.elems,old(m).elems,e)}
+
+    proc cardinal(in m: Multidict<K,V>) : Z
+        asegura  {car ∈al(m.elems) == res}
+
+    proc apariciones(in m: Multidict<K,V>, in e: T) : Z
+        requiere {pertenece(m.elems,e)}
+        asegura  {apariciones(m.elems,e,res)}
+
+    pred defineClave(nuevo: conj<K,conj<V>>, viejo: conj<K,conj<V>> , e: T) {
+        (∀ t: <T x Z>)(t ∈ viejo ∧L t[0] != e ⇒ 
+            ⇒ (∃ tup: <T x Z>)(tup[0] == e ∧ tup[1] == 1 ∧ tup ∈ nuevo))
+        ∨
+        (∃ i: Z)(i > 1 ∧ <e,i> ∈ viejo ⇒ 
+            ⇒ (∃ t: <T x Z>)(t[0] == e ∧ ∧ t[1] = i + 1  t ∈ nuevo))
+    }
+
+    pred mantieneRestantes(nuevo: conj<K,conj<V>>, viejo: conj<K,conj<V>> , e: T) {
+        (∀ t: <T x Z>)(t[0] != e ⇒ 
+            ⇒ (t ∈ nuevo ↔ t ∈ viejo))
+    }
+
+    pred pertenece(c: conj<K,conj<V>>, e: T) {
+        (∃ t: <T x Z>)(t ∈ c ∧ t[0] == e ∧ t[1] > 1)
+    }
+    
+    pred borraClave(nuevo: conj<K,conj<V>>, viejo: conj<K,conj<V>> , e: T) {
+        (∃ i: Z)(i > 1 ∧ <e,i> ∈ viejo ⇒ 
+            ⇒ (∃ t: <T x Z>)(t ∈ nuevo ∧ t[0] == e ∧ t[1] = i-1))
+        ∨
+        (∃ i: Z)(i = 1 ∧ <e,i> ∈ viejo ⇒ 
+            ⇒ !(∃ t: <T x Z>)(t ∈ nuevo ∧ t[0] == e ))
+    }
+
+    aux cardinal(in m: conj<K,conj<V>>) : Z =
+        sum t: <T x Z> :: (t ∈ m) :: t[1]
+
+    pred apariciones(m: conj<K,conj<V>>, e: T, r: Z) {
+        (∃ t: <T x Z>)(t ∈ m ∧ t[0] = e ∧ t[1] = r)
+    }
+}
+
+#3 // Preguntar
+TAD cache<T> { 
+    obs memoria: conj<T>
+    obs edv: float //esperanza de vida, es decir, cuanto tiempo es almacenada memoria en el cache como maximo
+    obs limiteDeMemoria: int
+
+    proc almacenar(inout c: cache<T>, in e: T)
+        requiere {|c.memoria| < c.limiteDeMemoria}
+        asegura  {c.memoria - e == old(c).memoria}
+    
+    proc TTL(inout c: cache<T>)
+        requiere {(∃ t:T)(t ∈ c.memoria ∧ now(t) == c.edv)}
+        asegura  {(∀ t:T)(t ∈ old(c).memoria ∧ now(t) == c.edv ⇒L old(c).memoria - {t} = c.memoria)}
+    
+    proc FIFO(inout c: cache<T>)
+        requiere {|c.memoria| == c.limiteDeMemoria}
+        asegura  {}
+
+    proc LRU(inout c: cache<T>)
+        requiere {|c.memoria| == c.limiteDeMemoria}
+        asegura  {}
+    
+}
+
+#4 
+
+TAD Pila<T> {
+    obs stack: dict<int,T>
+
+    proc vacia() : Pila<T>
+        asegura  {res.stack == {}}
+
+    proc push(inout p : Pila<T>, in t: T)
+        asegura  {|old(p.stack)| + 1 == |p.stack|}
+        asegura  {|p.stack| ∈ p.stack ∧L p.stack[|p.stack|] = t}
+
+    proc pop(inout p : Pila<T>)
+        requiere {|p.stack| > 0}
+        asegura  {|old(p.stack)| - 1 == |p.stack|}
+        asegura  {¬(|p.stack| + 1 ∈ p.stack)}
+    
+    proc altura(in p: Pila<T>) : int
+        asegura  {|p.stack| == res}
+}
+
+TAD Diccionario<K,V> {
+    obs elems: conj<K x V>
+
+    proc vacia() : Multiconjunto<T>
+        asegura  {res.elems == {}}
+
+    proc definir(inout m: Multiconjunto<T>, in k: K, in v: V)
+        requiere {¬definido(m.elems,k,v)}
+        asegura  {definido(m.elems,k,v)}
+        asegura  {mantieneRestantes(m.elems,old(m).elems,k,v)}
+
+    proc borrar(inout m: Multiconjunto<T>, in k: K, in v: V)
+        requiere {definido(m.elems,k,v)}
+        asegura  {¬definido(m.elems,k,v)}
+        asegura  {mantieneRestantes(m.elems,old(m).elems,k,v)}
+
+    proc tamaño(in m: Multiconjunto<T>) : Z
+        asegura  {|m.elems| == res}
+
+    proc valor(in m: Multiconjunto<T>, in k: K) : V
+        requiere {definido(m.elems,k)}
+        asegura  {m.elems[k] = res}
+
+    pred definido(d: conj<K x V>, k: K, v: V) {
+        k ∈ d ∧ d[k] = v
+    }
+
+    pred mantieneRestantes(nuevo: conj<K x V>, viejo: conj<K x V>, k: K, v: V) {
+        (∀ t: K)(t != k ⇒ 
+            ⇒ ((t ∈ nuevo ↔ t ∈ viejo) ∧ (nuevo[t] = viejo[t])))
+    }
+}
+
+TAD Punto {
+    obs rho: float
+    obs theta: float
+
+    proc nuevoPunto(in r: float, in t: float) : nuevoPunto
+        requiere {rho > 0 ∧ 0 ≤ theta < 2*pi}
+        asegura  {res.rho = r ∧ res.theta = t}
+    
+    proc coordRho(in p: Punto) : float
+        asegura  {res = p.rho}
+
+    proc coordTheta(in p: Punto) : float
+        asegura  {res = p.theta}
+
+    proc coordX(in p: Punto) : float
+        asegura  {res = rho*cos(theta)}
+
+    proc coordY(in p: Punto) : float
+        asegura  {res = rho*sen(theta)}
+    
+    proc mover(inout p: Punto, in escalar: float, in angulo: float)
+        requiere {escalar ≥ 0 ∧ 0 ≤ angulo < 2*pi}
+        asegura  {p.radio = old(p)*escalar ∧ p.angulo = angulo}
+}
+
+#5 
+TAD Coord es struct<x:int,y:int> 
+
+TAD Robot {
+    obs recorrido: Multiconjunto<Coord>
+    obs actual: Coord
+
+    proc arriba(inout r: Robot)
+        asegura  {r.actual.y = old(r).actual.y + 1}
+        asegura  {Las demas cosas se mantienen iguales}
+        asegura  {agregaElemento(r.recorrido,old(r).recorrido,r.actual)}
+        asegura  {mantieneRestantes(r.recorrido,old(r).recorrido,r.actual)}
+        
+    proc abajo(inout r: Robot) 
+        asegura  {r.actual.y = old(r).actual.y - 1}
+        asegura  {Las demas cosas se mantienen iguales}
+        asegura  {agregaElemento(r.recorrido,old(r).recorrido,r.actual)}
+        asegura  {mantieneRestantes(r.recorrido,old(r).recorrido,r.actual)}
+
+    proc izquierda(inout r: Robot) 
+        asegura  {r.actual.x = old(r).actual.x - 1}
+        asegura  {Las demas cosas se mantienen iguales}
+        asegura  {agregaElemento(r.recorrido,old(r).recorrido,r.actual)}
+        asegura  {mantieneRestantes(r.recorrido,old(r).recorrido,r.actual)}
+
+    proc derecha(inout r: Robot) 
+        asegura  {r.actual.x = old(r).actual.x + 1}
+        asegura  {Las demas cosas se mantienen iguales}
+        asegura  {agregaElemento(r.recorrido,old(r).recorrido,r.actual)}
+        asegura  {mantieneRestantes(r.recorrido,old(r).recorrido,r.actual)}
+
+    proc masDerecha(in r: Robot) : Coord 
+        asegura  {res ∈ r.recorrido ∧ (∀ c: Coord)(pertenece(r.recorrido,c) ⇒L (res.x ≥ c.x))}
+
+    proc cuantasVecesPaso(in r: Robot, in c: Coord) : int 
+        asegura  {res = apariciones(r.recorrido,c,r)}
+} // Preguntar porque no me cierra el uso de otro TAD
+
+TAD Producto es String 
+
+TAD Stock {
+    obs minimo: dict(Producto,int)
+    obs disponibles: dict(Producto,int)
+    obs comprados: dict(Producto,int)
+    obs vendidos: dict(Producto,int)
+    obs sustituto: dict(Producto,Producto) 
+
+    proc crear() : Stock
+        asegura  {res.minimo = {}}
+        asegura  {res.disponibles = {}}
+        asegura  {res.comprados = {}}
+        asegura  {res.vendidos = {}}
+        asegura  {res.sustituto = {}}
+
+    proc registrarProducto(inout s: Stock, in p: Producto, in m: int)
+        requiere {¬p ∈ s.minimo}
+        asegura  {p ∈ s.minimo ∧L s.minimo[p] == m}
+
+    proc comprar(inout s: Stock, in p: Producto, in c: int)
+        requiere {p ∈ s.minimo ∧L (¬p ∈ s.disponibles ⇒ c >= s.minimo[p])}
+        asegura  {p ∈ s.disponibles ∧ p ∈ old(s).disponibles ⇒ s.disponibles[p] = old(c).disponibles[p]+c}
+        asegura  {p ∈ s.disponibles ∧L s.disponibles[p] = c}
+        asegura  {}
+        asegura  {El resto de cosas en disponibles y comprados no cambiaron}
+
+    proc vender()
+
+    proc sustituto()
+
+    proc 
+}
