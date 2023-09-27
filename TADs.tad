@@ -186,30 +186,60 @@ TAD Multidict<K,V> { //hacer
     }
 }
 
-#3 // Preguntar
-TAD cache<T> { 
-    obs memoria: conj<T>
-    obs edv: float //esperanza de vida, es decir, cuanto tiempo es almacenada memoria en el cache como maximo
+#3 // Preguntar si modelan bien
+TAD TTLcache<T> { 
+    obs memoria: conj<T x float>
     obs limiteDeMemoria: int
 
-    proc almacenar(inout c: cache<T>, in e: T)
+    proc crear(in i: int) : TTLcache<T>
+        asegura  {res.memoria == {}}
+        asegura  {res.limiteDeMemoria == i}
+
+    proc almacenar(inout c: TTLcache<T>, in e: T)
+        requiere {|c.memoria| < c.limiteDeMemoria}
+        asegura  {c.memoria - <e,0> == old(c).memoria}
+    
+    proc eliminar(inout c: TTLcache<T>)
+        requiere {(∃ t:<T x int>)(t ∈ c.memoria ∧ now() == t[2])}
+        asegura  {(∀ t:<T x int>)(t ∈ old(c).memoria ∧ now(t) == c.edv ⇒L old(c).memoria - {t} = c.memoria)}
+}
+
+TAD FIFOcache<T>{
+    obs memoria: seq<T>
+    obs limiteDeMemoria: int
+
+    proc crear(in i: int) : FIFOcache<T>
+        asegura  {res.memoria == []}
+        asegura  {res.limiteDeMemoria == i}
+
+    proc almacenar(inout c: FIFOcache<T>, in e: T)
         requiere {|c.memoria| < c.limiteDeMemoria}
         asegura  {c.memoria - e == old(c).memoria}
     
-    proc TTL(inout c: cache<T>)
-        requiere {(∃ t:T)(t ∈ c.memoria ∧ now(t) == c.edv)}
-        asegura  {(∀ t:T)(t ∈ old(c).memoria ∧ now(t) == c.edv ⇒L old(c).memoria - {t} = c.memoria)}
-    
-    proc FIFO(inout c: cache<T>)
+    proc eliminar(inout c: FIFOcache<T>)
         requiere {|c.memoria| == c.limiteDeMemoria}
-        asegura  {}
-
-    proc LRU(inout c: cache<T>)
-        requiere {|c.memoria| == c.limiteDeMemoria}
-        asegura  {}
-    
+        asegura  {c.memoria == subseq(old(c).memoria,1,|old(c).memoria|)}
+        asegura  {c.limiteDeMemoria == old(c).limiteDeMemoria - 1}
 }
 
+TAD LRUcache<K> {
+    obs memoria: dict<K,int>
+    obs limiteDeMemoria: int
+
+    proc crear(in i: int) : LRUcache<K>
+        asegura  {res.memoria == {}}
+        asegura  {res.limiteDeMemoria == i}
+
+    proc almacenar(inout c: LRUcache<K>, in e: K)
+        requiere {|c.memoria| < c.limiteDeMemoria}
+        asegura  {c.memoria - e == old(c).memoria}
+    
+    proc eliminar(inout c: LRUcache<K>)
+        requiere {|c.memoria| == c.limiteDeMemoria}
+        asegura  {(∀ k : K)(k ∈ old(c).memoria ⇒L 
+                    (∃ c : K)(c ∈ old(c).memoria ∧ c ≠ k ∨L old(c).memoria[c] >= old(c).memoria[k]) ⇒L
+                        delKey(old(c).memoria,c) == c.memoria)}
+}
 #4 
 
 TAD Pila<T> {
@@ -329,16 +359,14 @@ TAD Robot {
 
 TAD Producto es String 
 
-TAD Stock {
+TAD Stock { 
     obs minimo: dict(Producto,int)
-    obs disponibles: dict(Producto,int)
     obs comprados: dict(Producto,int)
     obs vendidos: dict(Producto,int)
-    obs sustituto: dict(Producto,Producto) 
+    obs sustituto: dict(Producto,Producto x int) 
 
     proc crear() : Stock
         asegura  {res.minimo = {}}
-        asegura  {res.disponibles = {}}
         asegura  {res.comprados = {}}
         asegura  {res.vendidos = {}}
         asegura  {res.sustituto = {}}
@@ -346,17 +374,26 @@ TAD Stock {
     proc registrarProducto(inout s: Stock, in p: Producto, in m: int)
         requiere {¬p ∈ s.minimo}
         asegura  {p ∈ s.minimo ∧L s.minimo[p] == m}
+        asegura  {comprados y vendidos permanecen iguales}
 
     proc comprar(inout s: Stock, in p: Producto, in c: int)
-        requiere {p ∈ s.minimo ∧L (¬p ∈ s.disponibles ⇒ c >= s.minimo[p])}
-        asegura  {p ∈ s.disponibles ∧ p ∈ old(s).disponibles ⇒ s.disponibles[p] = old(c).disponibles[p]+c}
-        asegura  {p ∈ s.disponibles ∧L s.disponibles[p] = c}
-        asegura  {}
-        asegura  {El resto de cosas en disponibles y comprados no cambiaron}
+        requiere {p ∈ s.minimo ∧ cantDisponibles(p,s) + c > minimo} // Que la compra supera el minimo
+        asegura  {setKey(old(s).comprados,p,old(s).comprados[p]+c) == s.comprados}
+        asegura  {El resto de cosas en sustituto y vendidos no cambiaron}
 
-    proc vender()
+    proc vender(inout s: Stock, in p: Producto, in c: int)
+        requiere {p ∈ s.minimo ∧ cantDisponibles(p,s) >= c} 
+        asegura  {setKey(old(s).vendidos,p,old(s).vendidos-c) == s.vendidos}
+        asegura  {El resto de cosas en sustituto y comprados no cambian}
 
-    proc sustituto()
+    proc pocoStock(in s: Stock) : conj<Producto>
+        asegura  {(∀ p: Producto)(p ∈ s.minimo ⇒L 
+                    ((s.minimo[p] > cantDisponibles(p,s) ∧ ¬p ∈ s.sustituto)
+                    ∨ (p ∈ s.sustituto ⇒L s.sustituto[p][2] + cantDisponibles(p,s) < s.minimo[p])) ⇒
+                        p ∈ res)}
 
-    proc 
-}
+    aux cantDisponibles(p: Producto, s: Stock) : int = 
+        s.comprados[p] - s.vendidos[p];
+
+
+} //No me cierra
