@@ -1,0 +1,205 @@
+modulo matInfImpl implementa Matriz infinita de booleanos {
+    var elems: Array<Array<Bool>>
+    var switch: Bool
+
+    InvRep (m': matInfImpl) {
+        True
+    }
+
+    proc crear() : matInfImpl 
+    complejidad O(1)
+    {
+        res := new matInfImpl;
+        res.elems := new Array<Array<Bool>>();
+        res.switch := False; 
+    }
+
+    prc asignar(inout m: matInfImpl; in f,c: int; in t:Bool) : matInfImpl
+    complejidad O(f*c,c)
+    //asumo que al crear un array<Bool> son todas falsas las posiciones
+    {
+        if (t == False && m.switch == False) {
+            return;
+        } else {
+            if (f < m.elems.length) {
+                if (c >= m.elems[f].length) {
+                    nuevo_arr := new Array<Bool>(c);
+                    m.elems[f] := nuevo_arr;
+                }
+                if (m.switch == True) {
+                    m.elems[f][c] := !t;
+                } else {
+                    m.elems[f][c] := t;
+                }
+            } else {
+                nueva_mat := new Array<Bool>(f);
+                for (int i = 0; i < m.elems.length; i++) {
+                nueva_mat[i] := m.elems[f];
+                }
+                nueva_mat[f] = new Array<Bool>(c); 
+                
+                if (m.switch == True) {
+                    m.elems[f][c] := !t;
+                } else {
+                    m.elems[f][c] := t;
+                }
+
+                m.elems = nueva_mat;
+            }  
+        }
+    }
+
+    proc ver(in m: matInfImpl, in f,c: int) : booleanos
+    complejidad O(1)
+    {
+        if (f >= m.elems.length) {
+            res := false;
+        } else {
+            if (c >= m.elems[f].length) {
+                res := false;
+            } else {
+                res := m.elems[f][c];
+            }
+        }
+        if (m.switch == True) {
+            return !res;        
+        } else {
+            return res;
+        }
+    }
+
+    proc complementar(inout m:matInfImpl)
+    complejidad O(1)
+    {
+        m.switch := True;
+    }
+}
+-----------------------------------------------------
+NodoMatFin es struct{
+    dato: int;
+    posFila: int;
+    posColumna: int;
+}
+
+modulo matFinImpl implementa matrizFinita {
+    elems: Array<listaEnlazada<NodoMatFin>>
+    cant_filas: int
+    cant_columnas: int
+
+    proc crear(filas: int, columnas: int) : matFinImpl
+    requiere filas > 0 & columnas > 0
+    complejidad O(1)
+    {
+        res := new matFinImpl;
+        res.elems := new Array<listaEnlazada<NotoMatFin>(filas);
+        dim.cant_filas := filas;
+        dim.cant_columnas := columnas;
+    }
+
+    proc definir(m: matFinImpl, fila: int, columna: int, elem: int) : matFinImpl
+    {
+        if (elem != 0) {
+            if (obtener(m,fila,columna) == 0) {
+                nodo = new NodoMatFin(fila,columna,elem) //cambiar para mantener la lista ordenada por columna
+                m.elems[fila] := agregarAdelante.m.elems[fila](nodo);
+            } else {
+                it = iterador(m.elems[fila]);
+                while (it.posColumna != columna) {
+                    it.siguiente;
+                }
+                it.dato := elem;
+            }
+        }
+    }
+
+    proc obtener(m: matInfImpl, fila: int, columna: int) : int
+    {
+        it := iterador(m.elems[fila]);
+        while(haySiguiente(it) && it.posColumna != columna) {
+            it.siguiente;
+        }
+        if (haySiguiente(it)) {
+            res = it.dato;
+            return res;
+        } else {
+            return 0;
+        }
+    }
+
+    proc sumarMatrices(m: matInfImpl, n: matInfImpl) : matInfImpl
+    {
+        res := crear(m.filas,m.columnas);
+        for(int i = 0; i < m.filas; i++) {
+            itM = iterador(m.elems[i]);
+            itN = iterador(m.elems[i]);
+            while(haySiguiente(itM) && haySiguiente(itN)) {
+                if (itM.posColumna == itN.posColumna) {
+                    nodo = new NodoMatFin(i,itM.posColumna,itM.dato+itN.dato);
+                    itM = itM.siguiente;
+                    itN = itN.siguiente;
+                } else if (itM.posColumna < itN.posColumna) {
+                    nodo = new NodoMatFin(i,itM.posColumna,itM.dato);
+                    itM = itM.siguiente;
+                } else {
+                    nodo = new NodoMatFin(i,itN.posColumna,itM.dato);
+                    itN = itN.siguiente;
+                }
+                res[i].agregarAtrás(nodo);
+            }
+        }
+        return res;
+    }
+}
+
+-----------------------------------------------
+modulo DiccConHistoriaImpl<K,V> implementa DiccionarioConHistorial {
+    data: diccionarioLineal<K,V>
+    cant: diccionarioLineal<K,int>    
+}
+
+----------------------------------------------
+Dia es int
+
+modulo ClientesBBVAImpl implementa IngresosAlBanco {
+    cantPorDia: vector<Dia>
+    cantAcum: vector<Dia>
+
+
+    proc nuevosIngresos() : ClientesBBVAImpl
+    complejidad O(1)
+    {
+        res = new ClientesBBVAImpl;
+        res.cantPorDia := vacia();
+        res.cantAcum := vacia();
+    }
+
+    proc registrarDia(inout i: ClientesBBVAImpl, in cant: int) 
+    complejidad O(n)
+    {
+        i.cantPorDia.agregarAtrás(cant);
+        if (i.cantAcum.length == 0) {
+            i.cantAcum.agregarAtrás(cant);
+        } else {
+            cantAcumAnterior = i.cantAcum.obtener(res.cantAcum.lenght - 1);
+            i.cantAcum.agregarAtrás(cantAcumAnterior + cant);
+        }
+    }
+
+    proc cantDias(in i: ClientesBBVAImpl) : int
+    complejidad O(1)
+    {
+        res = i.cantAcum.length;
+        return res; 
+    }
+
+    proc cantPersonas(in i: ClientesBBVAImpl, in desde: int, in hasta: int) : int
+    complejidad O(1)
+    {
+        cantDesde = i.cantAcum.obtener(desde);
+        cantHasta = i.cantAcum.obtener(hasta-1);
+        res = cantHasta-cantDesde;
+        return res;
+    }
+
+    //falta añadir funcion mediana
+}
