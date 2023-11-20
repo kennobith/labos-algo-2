@@ -152,10 +152,57 @@ modulo matFinImpl implementa matrizFinita {
 }
 
 -----------------------------------------------
-modulo DiccConHistoriaImpl<K,V> implementa DiccionarioConHistorial {
-    data: diccionarioLineal<K,V>
+data: diccionarioLineal<K,V>
     cant: diccionarioLineal<K,int>    
-}
+
+    proc nuevoDiccionario() : DiccConHistoriaImpl<K,V>
+    complejidad O(1)
+    {
+        res := new DiccConHistoriaImpl;
+        res.data := diccionarioVacio();
+        res.cant := diccionarioVacio();
+    }
+
+    proc esta(in d: DiccConHistoriaImpl<K,V>, in k: K) : bool
+    O(n)
+    {
+        res := d.data.esta(k); 
+        return res;
+    }
+
+    proc definir(inout d:DiccionarioConHistoria<K,V>, in k: K, in v: V)
+    O(n)
+    {
+        if (esta(d,k)) {
+            cant_ant := d.cant.obtener(k);
+            d.cant.definir(k,cant_ant+1);
+        } else {
+            d.cant.definir(k,1);
+        }
+
+        d.data.definir(,k,v);
+    }
+
+    proc obtener(in d: DiccionarioConHistoria<K,V>, in k: K) : V
+    O(n)
+    {
+        res := d.data.obtener(k);
+        return res;
+    }
+
+    proc borrar(in d: DiccionarioConHistoria<K,V>, in k: K)
+    O(n)
+    {
+        res := d.data.borrar(k);
+        return res;
+    }
+
+    proc cantSignificados(in d: DiccionarioConHistoria<K,V>, in k: K) : int
+    O(n)
+    {
+        res := d.cant.obtener(k);
+        return res;
+    }
 
 ----------------------------------------------
 Dia es int
@@ -201,5 +248,17 @@ modulo ClientesBBVAImpl implementa IngresosAlBanco {
         return res;
     }
 
-    //falta añadir funcion mediana
+    proc mediana(in i:ClientesBBVAImpl) : int   //The median of a sorted array of size n is defined as the middle element when n is odd and the average of the two middle elements when n is even. 
+    complejidad O(n) {
+        longitud := i.cantAcum.length;
+        res := 0;
+        if (longitud mod 2 == 0) {
+            elem1 := i.cantAcum.obtener(longitud/2 -1);
+            elem2 := i.cantAcum.obtener(longitud/2);
+            res := (elem1+elem2)/2
+        } else {
+            res := i.cantAcum.obtener(longitud/2);
+        }
+        return res;
+    }
 }
