@@ -1,0 +1,48 @@
+Práctica 5
+
+Ejercicio 8 - Colegio secundario
+
+InvRep(s': SecundarioImpl) {
+    (∀ e: Estudiante)(e ∈ s'.estudiantes ⟷ e ∈ s'.faltas) ∧
+    (∀ e: Estudiante)(e ∈ s'.estudiantes ⟷ e ∈ s'.notasPorEstudiante) ∧
+    |s'.notas| = 11 ∧L 
+    (∀ i: ℤ)(0 ≤ i < |s'.notas| ⇒L incluido(s'.notas[i],s'.estudiantes)) ∧
+    (∀ i: ℤ)(0 ≤ i < |s'.notas| ⇒L 
+        (∀ e: Estudiante)(e ∈ s'.notas[i] ⇒L s'.notasPorEstudiante[e][i] > 0 )) ∧
+    (∀ e: Estudiante)(e ∈ s'.notasPorEstudiante ⇒L 
+        (∀ i: ℤ)(0 ≤ i < 11 ⇒L 
+            (s'.notasPorEstudiante[i] > 0 ⇒ e ∈ s'.notas[i]) ∧
+            |(s'.notasPorEstudiante[i])| = 1))
+}
+
+FuncAbs(s': SecundarioImpl) {
+    s: Secundario |
+    s.estudiantes = s'.estudiantes ∧
+    s.faltas = s'.faltas ∧
+    Todas la cantidad de apariciones la nota i-esima en s.notas 
+    es igual a la posición i-esima de s'.notasPorEstudiante
+}
+
+--------------------------------------------------
+
+Ejercicio AltaFiesta
+
+En castellano:
+1-Todos los que están en presentes están en invitados.
+2-Todos las personas dentro de GrupoDe están en presentes y viceversa.
+3-Todos los grupos que están en GrupoDe están regaloDeGrupo y viceversa.
+4-Que no haya la misma persona en dos grupos distintos.
+
+InvRep (a': AltaFiestImpl) {
+1-(∀p: Persona)(p ∈ a'.presentes ⇒ p ∈ a'.invitados) ∧
+2-(∀g: Grupo)(g ∈ a'.grupoDe ⇒L
+    ⇒L (∀p: Persona)(p ∈ a'.grupoDe[g] ⇒ p ∈ a'.presentes)) ∧
+  (∀p: Persona)(p ∈ a'.presentes ⇒
+    ⇒ (∃g: Grupo)(g ∈ a'.grupoDe ⇒L p ∈ a'.grupoDe[g])) ∧
+3-(∀g: Grupo)(g ∈ a'.grupoDe ⇒ g ∈ a'.regaloDe) ∧
+4-(∀g: Grupo)(g ∈ a'.grupoDe ⇒
+    ⇒ (∀g': Grupo)(g' ∈ a'.grupoDe ∧ g ≠ g' ⇒ 
+    (∀p,p': Persona)(p ∈ a'.grupoDe[g] ∧ p' ∈ a.grupoDe[g'] ⇒ p ≠ p')))
+}
+
+FuncAbs 
