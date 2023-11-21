@@ -1,0 +1,39 @@
+Ejercicio 5
+
+proc ordenarFrecuencia(inout arr: Array) { // n = claves del diccionario d; m = longitud del array arr;
+    d = new DiccLog<int,int> // O(1)
+    for(int i = 0; i < arr; i++) { // Como n ≤ m => O(log(m))
+        if (d.esta(arr[i])) {
+            frecuencia_anterior := d.obtener(arr[i]); // O(log(n)) 
+            d.definir(arr[i],frecuencia_anterior+1); // O(log(n))
+        } else {
+            d.definir(arr[i],0);
+        }
+    }
+
+    A = new Array[d.tamaño]; // O(1)
+    i = 0;
+    for(k in d) { // O(n)
+        A[i] = k;
+    }
+
+    A.mergeSort(); //O(n*log(n)) & n ≤ m => O(m*log(m)) Ordenamos por valor   
+    A.mergeSortAux(); // O(n*log(n)) & n ≤ m => O(m*log(m)) Ordenamos por frecuencia
+
+    i = 0;
+    k = 0;
+    while(i < arr.length) { // O(m)*O(log(n)) & n ≤ m => O(m)*O(log(m)) = O(m*log(m))
+        j = 0;
+        frec := d.obtener(arr[i]); O(log(n)),
+        while (j < frec) { // O(frec)
+            arr[i+j] := A[k];
+            j++
+        }
+        k++;
+        i =j
+    }
+} // O(m*log(m))
+
+--------------------
+
+Ejercicio 6
