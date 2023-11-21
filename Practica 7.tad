@@ -262,3 +262,52 @@ modulo ClientesBBVAImpl implementa IngresosAlBanco {
         return res;
     }
 }
+
+---------------------------------------------------------------------
+Ejercicio 9 
+
+1. Podemos tener una matriz de 101 x 101 de 0's y 1's, donde si en la posición a,b 
+hay un 0, significa que a no está relacionado con b, pero si hay 1, sí lo está.
+
+modulo relaciones101 { //qué original el nombre
+
+
+
+    var elems: Array[Array[int]]
+
+    InvRep(r : relaciones101) {
+        (∀ i: int)(0 ≤ i ≤ 101 =>L (∀ j: int)(0 ≤ i ≤ 101 =>L r.elems[i][j] = 0 || r.elems[i][j] = 1))
+    }
+
+    funcAbs no se puede hacer porque no hay tad
+
+    proc nuevo() : relaciones101
+    O(1) // I mean, son 101^2 posiciones de memorias reservadas, pero es una constante.
+    {
+    res := new relaciones101;
+    res.elems := new Array[101];
+    for(int i = 0; i <= 101; i++) {
+        res.elems[i] := new Array[101];
+    }
+    return res;
+    }
+
+    proc agregar(inout r:relaciones101, in a: int, b: int)
+    complejidad O(1)
+    {
+        r.elems[a][b] = 1;
+    }
+
+    proc borrar(inout r:relaciones101, in a: int, b: int)
+    complejidad O(1)
+    {
+        r.elems[a][b] = 0;
+    }
+ }
+
+ 2. Si el intervalo de naturales acotado es [a,b], entonces podemos armar una matriz de b-a x b-a,
+ con la misma lógica que antes.
+ Acá la operación nuevo cuesta O((b-a) * (b-a)), las otras O(1)
+
+ 3. Podemos usar la matInfImpl, pero en vez de 1's y 0's, True y False.
+ No sé si hay una mejor estructura.
