@@ -37,3 +37,52 @@ proc ordenarFrecuencia(inout arr: Array) { // n = claves del diccionario d; m = 
 --------------------
 
 Ejercicio 6
+
+Idea:
+Armo un array de triplas, que tenga la cantidad de secuencias de escaleras del array dado.
+En la primera posición guardo la longitud del mismo, en la segunda guardo el primer elemento del array, en la tercera la posicion del primer elemento de la escalera.
+
+Por ejemplo, para <5,6,8,9,10,7,8,9,20,15> Tenemos 5 escaleras, entonces nos queda armado así:
+<<2,5,1,<3,8,2,<3,7,5>,<1,20,8>,<1,15,9>>
+
+Luego ordenamos primero por la longitud (o sea el primero de la tripla), luego por el segundo elemento que es el primero de cada escalera. 
+
+Por último rearmamos el array teniendo los cuidados necesarios.
+
+Algoritmo
+
+proc ordenarEscaleras(inout arr: Array<int>) {
+    i = 0;
+    datos_escaleras := new vectorVacío();
+    while (i < arr.length) {
+        j := i;
+        prim := i;
+        ultimo := i;
+        while (j < arr.length -1 & arr[j] == arr[j+1]){
+            ultimo := j;
+            j++;
+        }
+        dato := new Tripla(ultimo+1-prim,i,arr[i]);
+        datos_escaleras.agregarAtrás(dato);
+        i := j;
+    }
+
+    datos_escaleras.mergeSort(); //ordeno por el primero que es la longitud... Puedo asumir que existe la función de MergeSort para un vector???
+    datos_escaleras.mergeSortAux(); // ordeno por el segundo que es el menor elemento de la escalera
+
+    nuevo := new Array(arr.length);
+    i := 0;
+    k := 0;
+    while (i < datos_escaleras.longitud) {
+        j = 0;
+        tripla = datos_escaleras[i]
+        while (j < tripla[1]) {
+            l = tripla[3]
+            nuevo[k] = arr[l];
+            l++;
+            k++;
+            j++;
+        } 
+        i++;
+    }
+}
