@@ -152,6 +152,37 @@ Capaz recurse comprensión de consignas, pero ENTIENDO que se nos da un arreglo 
 Si busco el máximo del arreglo, supongamos que es m, entonces hago bucketSort pero me queda O(m), Observar que m <= k, pero nunca nos dice que k <= n
 
 --------------------------------------
+Ejercicio 12
+
+proc ordenarMediciones(inout arr: Array<int>) {
+    enRango := new vectorVacio();
+    menorRango := new vectorVacio();
+    mayorRango := new VectorVacio();
+    for(int i = 0; i < arr.length; i++) { // O(n)
+        if (20 <= arr[i] & arr[i] <= 40) {
+            enRango.agregarAtrás(arr[i]);
+        } else if (arr[i] < 20) {
+            menorRango.agregarAtrás(arr[i]);
+        } else {
+            mayorRango.agregarAtrás(arr[i]);
+        }
+    }
+
+    enRango := enRango.toArray(); //Asumo que existe y que cuesta O(n)
+    menorRango := menorRango.toArray();
+    mayorRango := mayorRango.toArray();
+
+    enRango.countingSort(); // O(1)
+    menorRango.countingSort(); // O(1)
+    mayorRango.insertionSort(); // O(n) //esto es porque recibe como parametro un array que tiene a lo sumo floor(sqrt(n)), sabemos que la complejidad del algoritmo es O(k^2),
+                                     //si el arreglo de entrada tiene k elementos, como el arreglo mayorRango tiene  floor(sqrt(n)) ==> O(floor(sqrt(n))^2) = O(n)
+
+    arr := concat(menorRango,enRango); // O(n)
+    arr := concat(arr,mayorRango); //O(n)
+}
+
+
+--------------------------------------
 
 Ejercicio 13 - Preguntar
 proc ordenarConHeap(inout arr: Array<T>) {
