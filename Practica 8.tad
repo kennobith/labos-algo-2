@@ -86,3 +86,5 @@ proc ordenarEscaleras(inout arr: Array<int>) {
         i++;
     }
 }
+
+Las operaciones más complejas son los MergeSort, o sea que es O(n*log(n));
