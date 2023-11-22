@@ -197,5 +197,80 @@ proc ordenarConHeap(inout arr: Array<T>) {
 
     arr.mergeSort(); // O(n*log(n)) ordeno por el primer valor
 }
+-------------------------------------------
+
+Ejercicio 14 
+
+Uno pensaría armar el arreglo de n*k elementos, con todos los multiplos y hacer mergeSort, el tema es que cuesta O(nk*log(nk))
+
+Lo que vamos a hacer es esto: creamos un diccionario de frecuencia de elementos, para ver cuantas veces se repiten en el array (eso cuesta O(n*log(n))).
+Luego haremos un minHeap donde los elementos seran cuatriplas (especificada más abajo) donde en el múltiplo de la key del diccionario sea el elemento a comparar. Esto
+costará O(n*log(n))
+Por último iremos añadiendo los elementos al array nuevo que devolveremos. La idea es  que vamos a guardarnos la cuatripla y la borraremos del heap, si el k_alcanzado 
+es mayor al k que se pasa por paramétro es que ya se añadieron al array todos los múltiplos del número. Si el k_alcanzado es menor al k pasado por parametro, crearemos 
+una cuatripla similar a la anterior, solo que sería el múltiplo correspondiente del natural original, con el k_alcanzado incrementado. Finalmente añadimos en el array el
+multiplo correspondiente al elemento la cantidad de veces que estaba en el array original. Al hacer esto n*k veces y el cuerpo del ciclo cuesta O(log(n)), entonces
+cuesta O(nk*log(n)) en total. Veamos que es una de HeapSort.
+
+Miremos por qué la complejidad es la pedida.
+Los tres ciclos juntos se suman: 
+O(n*log(n)) + O(n*log(n)) + O(nk*log(n)) = O(n*log(n)) + O(nk*log(n))
+Ahora como n*log(n) <= nk*log(n) => O(n*log(n)) + O(nk*log(n)) = O(max{n*log(n),nk*log(n)}) = O(nk*log(n))
+Que es la complejidad pedida.
+
+story time: 
+no me salía de ninguna forma. Me puse a cocinar y lavar los platos y se me ocurrió.
+moraleja: 
+si no sale, andá a comer, limpiá un poco y dejá que la cabeza trabaje el ejercicio de fondo. Eso me lo enseño Sheldon en The Big Bang Theory
+
+Cuatripla es struct<multiplo: nat, original: nat, k_alcanzado: nat, veces: nat> 
+
+proc ordenarMultiplos(in A: array<nat>, in k: nat) : array<nat> {
+    dic_frec := new diccLog();
+    for(i = 0; i < A.length; i++) { // n*O(log(n)) = O(n*log(n))
+        if (dic_frec.esta(A[i])) {
+            frecuencia_anterior := d.obtener(A[i]); // O(log(n)) 
+            dic_frec.definir(A[i],frecuencia_anterior+1); // O(log(n))
+        } else {
+            dic_frec.definir(A[i],1);
+        }
+    }
+
+    h := new Heap(); //  es un minHeap ordenado por el primer elemento de la Cuatripla
+    for(key in dic_frec) { // la cantidad de claves está acotada por n así que O(n*log(n))
+        frec := dic_frec[key];
+        cuat := new Cuatripla(key,key,1,frec);
+        h.añadir(cuat) // O(log(n))
+    }
+
+    res := new Array(A.length*k);
+
+    i := 0;
+    while(i < res.length) {//  nk * O(log(n)) = O(nk*log(n))
+        proximo := h.proximo();
+        h.borrar(proximo.multiplo); //O(log(n))
+
+        multiplo := proximo.multiplo;
+        original := proximo.original;
+        k_alcanzado := proximo.k_alcanzado;
+        veces := proximo.veces;
+        if (k_alcanzado <= k) {
+            cuat := new Cuatripla(original*(k_alcanzado+1),original,k_alcanzado+1,veces);
+            h.añadir(cuat); //O(log(n))
+        } 
+        
+        j = 0
+        while(j < veces) {
+            res[i] = multiplo;
+            j++;
+            i++;
+        }
+    }
+
+    return res;
+}
 
 -------------------------------------------
+Ejercicio 17 - Preguntar
+
+Aplicamos countingSort con la cota superior el maximo del arreglo, que está en la última posición...
