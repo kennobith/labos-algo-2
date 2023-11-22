@@ -88,3 +88,56 @@ proc ordenarEscaleras(inout arr: Array<int>) {
 }
 
 Las operaciones más complejas son los MergeSort, o sea que es O(n*log(n));
+
+Ejercicio 9
+
+(1) Vamos a armar un array de F y otro de M, los vamos a ordenar por nota (los ordenamos haciendo bucket sort), luego los concatenamos...
+
+proc ordenaPlanilla(inout p: planilla) {
+    por_notas_mujeres := new Array<ListaEnlazada<Alumno>>(11); // creo un array de 10 posiciones pues las notas van del 0 al 10
+    por_notas_hombres := new Array<ListaEnlazada<Alumno>>(11);
+    for(int i = 0; i < planilla.length; i++) { // O(p.length)
+        nota := planilla[i].nota;
+        genero := planilla[i].genero
+        if (genero == fem) {
+            por_notas_mujeres[nota].agregarAtrás(planilla[i]);
+        } else {
+            por_notas_hombres[nota].agregarAtrás(planilla[i]);
+        }
+    }
+
+    i := 0;
+    k := 0; //obs: este k es el que va a ir iterando sobre la planilla original, es necesario notar que nunca va a pasarse de rango, 
+    while(i <= 10) {  // porque recorremos en por_notas_mujeres y en por_notas_hombres la misma cantidad de elementos que tiene planilla
+        while (!por_notas_mujeres[i].vacia) {
+            alumna := por_notas_mujeres[i].primero() //O(1)
+            por_notas_mujeres := por_notas_mujeres[i].fin; //O(1)
+            p[k] := alumna; //O(1)
+            k++;
+        }
+        i++;
+    }
+
+    while(i <= 10) {
+        while (!por_notas_hombres[i].vacia) {
+            alumna := por_notas_hombres[i].primero()
+            por_notas_hombres := por_notas_hombres[i].fin;
+            p[k] := alumna;
+            k++;
+        }
+        i++;
+    }
+
+}
+
+(2) Ya no tendramos por_notas_hombres ni por_notas_mujeres, tendríamos un array de arrays de listas enlazadas, llamemoslo por_notas 
+Entonces en por_notas[i] tenemos los elementos del tipo enum i (o sea, los del tipo enum recuerdo que a cada uno le corresponde un numero depende el orden que tengan)
+En por_notas[i][j] tenemos la lista enlazada de todos los alumnos de tipo enum i que tienen nota j
+El primer while no tendría el if que le había incluido
+Los dos últimos whiles terminarían siendo uno externo que recorra los distintos tipos enum que hay, y un while interno muy similar al que ya había armado (el de 
+while(i <= 10))
+
+(3)Estos algoritmos, que son algortimo tipo BucketSort (aun más, se llama este algoritmo del cartero https://es.wikipedia.org/wiki/Ordenamiento_por_casilleros) trabaja 
+bajo la premisa que los elementos del array se ordenan por las categorías que representan y que dichas categorías están acotadas.
+En el primer caso, como sabíamos que los géneros están acotados por 2 y las notas por 10, queda complejidad O(n)
+En el segundo caso, si el tipo enum genero es c, queda complejidad ¿¿O(n + c) u O(n*c)??
