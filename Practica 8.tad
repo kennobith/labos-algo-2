@@ -142,3 +142,29 @@ bajo la premisa que los elementos del array se ordenan por las categorías que r
 teorema de Lower Bound, que no asume premisas sobre el array a ordenar
 En el primer caso, como sabíamos que los géneros están acotados por 2 y las notas por 10, queda complejidad O(n)
 En el segundo caso, si el tipo enum genero es c, queda complejidad ¿¿O(n + c) u O(n*c)??
+
+
+-------------------------------------------------
+
+Ejercicio 11 - Preguntar
+
+Capaz recurse comprensión de consignas, pero ENTIENDO que se nos da un arreglo de n naturales y están acotados por un k...
+Si busco el máximo del arreglo, supongamos que es m, entonces hago bucketSort pero me queda O(m), Observar que m <= k, pero nunca nos dice que k <= n
+
+--------------------------------------
+
+Ejercicio 13 - Preguntar
+proc ordenarConHeap(inout arr: Array<T>) {
+    heapificado = arrayToHeap(arr); // sería heapificar en base a la longitud n*l con el algoritmo de floyd O(n*l)
+
+    i := 0;
+    while(i < arr.length) { // n * O(log(n)) = O(n*log(n))
+        maximo = heapificado.proximo(); // O(1)
+        heapificado.borrar(0); //O(log(n))
+        i++;
+    }
+
+    arr.mergeSort(); // O(n*log(n)) ordeno por el primer valor
+}
+
+-------------------------------------------
