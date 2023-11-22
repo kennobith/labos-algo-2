@@ -75,14 +75,15 @@ modulo matInfImpl implementa Matriz infinita de booleanos {
     }
 }
 -----------------------------------------------------
+Ejercicio 4
+
 NodoMatFin es struct{
+    pos int; 
     dato: int;
-    posFila: int;
-    posColumna: int;
 }
 
 modulo matFinImpl implementa matrizFinita {
-    elems: Array<listaEnlazada<NodoMatFin>>
+    elems: Vector<NodoMatFin>> // está ordenada y los elementos no tienen identificador de columna ni de fila, si no una posición entre 1 y cant_filas*cant_columnas
     cant_filas: int
     cant_columnas: int
 
@@ -91,62 +92,89 @@ modulo matFinImpl implementa matrizFinita {
     complejidad O(1)
     {
         res := new matFinImpl;
-        res.elems := new Array<listaEnlazada<NotoMatFin>(filas);
-        dim.cant_filas := filas;
-        dim.cant_columnas := columnas;
+        res.elems := new vectorVacío();
+        res.cant_filas := filas;
+        res.cant_columnas := columnas;
     }
 
     proc definir(m: matFinImpl, fila: int, columna: int, elem: int) : matFinImpl
-    {
+    requiere fila*columna <= cant_filas*cant_columnas
+    complejidad O(n) // Esto se debe a recorrer todo el Vector y después en el peor caso volverlo a copiar con el elemento añadido. 
+    {                // En una lista enlazado seguiría siendo lineal por el recorrido, pero podría implementarse la inserción para que sea menos costoso en general
+                     // El tema es que no está definida la inserción "en el medio" para las listas enlazadas
         if (elem != 0) {
-            if (obtener(m,fila,columna) == 0) {
-                nodo = new NodoMatFin(fila,columna,elem) //cambiar para mantener la lista ordenada por columna
-                m.elems[fila] := agregarAdelante.m.elems[fila](nodo);
-            } else {
-                it = iterador(m.elems[fila]);
-                while (it.posColumna != columna) {
-                    it.siguiente;
+            pos_elem := (fila - 1)*columna + columna; // esto se puede demostrar matemáticamente que resulta para todo elemento. 
+            
+            i := 0;
+            while (i < m.elems.longitud && m.elems[i].pos < pos_elem) {
+                i++;
+            } 
+
+            if (m.elems[i].pos == pos_elem) {
+                m.elems[i].dato = elem;
+            } else if (i == m.elems.longitud) {
+                NodoMatFin nodo_nuevo := new NodoMatFin(pos: pos_elem, dato: elem);
+                m.elems.agregarAtrás(nodo_nuevo);
+            } else { // m.elems[i].pos > pos_elem
+                nuevo := new vectorVacío();
+                j := 0;
+                while (j < i - 1) {
+                    nuevo.agregarAtrás(m.elems[j]);
+                    j++;
                 }
-                it.dato := elem;
+                NodoMatFin nodo_nuevo := new NodoMatFin(pos: pos_elem, dato: elem);
+                nuevo.agregarAtrás(nodo_nuevo);
+                while (j < m.elems.longitud) {
+                    nuevo.agregarAtrás(m.elems[j]);
+                    j++;
+                }
+                m.elems := nuevo;
             }
         }
     }
 
     proc obtener(m: matInfImpl, fila: int, columna: int) : int
     {
-        it := iterador(m.elems[fila]);
-        while(haySiguiente(it) && it.posColumna != columna) {
-            it.siguiente;
+        pos_elem := (fila - 1)*columna + columna; 
+        res := 0
+        
+        i := 0;
+        while (i < m.elems.longitud && m.elems[i].pos < pos_elem) {
+            i++;
+        } 
+    
+        if (m.elems[i].pos == pos_elem) {
+            res := m.elems[i].dato;
         }
-        if (haySiguiente(it)) {
-            res = it.dato;
-            return res;
-        } else {
-            return 0;
-        }
+
+        return res;
     }
 
     proc sumarMatrices(m: matInfImpl, n: matInfImpl) : matInfImpl
     {
         res := crear(m.filas,m.columnas);
-        for(int i = 0; i < m.filas; i++) {
-            itM = iterador(m.elems[i]);
-            itN = iterador(m.elems[i]);
-            while(haySiguiente(itM) && haySiguiente(itN)) {
-                if (itM.posColumna == itN.posColumna) {
-                    nodo = new NodoMatFin(i,itM.posColumna,itM.dato+itN.dato);
-                    itM = itM.siguiente;
-                    itN = itN.siguiente;
-                } else if (itM.posColumna < itN.posColumna) {
-                    nodo = new NodoMatFin(i,itM.posColumna,itM.dato);
-                    itM = itM.siguiente;
-                } else {
-                    nodo = new NodoMatFin(i,itN.posColumna,itM.dato);
-                    itN = itN.siguiente;
-                }
-                res[i].agregarAtrás(nodo);
+        i := 0;
+        j := 0;
+
+        while(i < m.elems.longitud && j < n.elems.longitud) {
+            nodo_m := m.elems[i].pos;
+            nodo_n := n.elems[j].pos;
+            if (nodo_m.pos == nodo_n.pos) {
+                nuevo := new NodoMatFin(pos: nodo_m.pos, dato: nodo_m.dato+nodo_n.dato);
+                res.elems.agregarAtrás(nuevo);
+                j++;
+                i++;
+            } else if (nodo_m.pos < nodo_n.pos) {
+                nuevo := new NodoMatFin(pos: nodo_m.pos, dato: nodo_m.dato);
+                res.elems.agregarAtrás(nuevo);
+                i++;
+            } else {
+                nuevo := new NodoMatFin(pos: nodo_n.pos, dato: nodo_n.dato);
+                res.elems.agregarAtrás(nuevo);
+                j++;
             }
         }
+
         return res;
     }
 }
