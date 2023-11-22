@@ -138,6 +138,7 @@ Los dos últimos whiles terminarían siendo uno externo que recorra los distinto
 while(i <= 10))
 
 (3)Estos algoritmos, que son algortimo tipo BucketSort (aun más, se llama este algoritmo del cartero https://es.wikipedia.org/wiki/Ordenamiento_por_casilleros) trabaja 
-bajo la premisa que los elementos del array se ordenan por las categorías que representan y que dichas categorías están acotadas.
+bajo la premisa que los elementos del array se ordenan por las categorías que representan y que dichas categorías están acotadas. Por eso no resulta contradictorio con el
+teorema de Lower Bound, que no asume premisas sobre el array a ordenar
 En el primer caso, como sabíamos que los géneros están acotados por 2 y las notas por 10, queda complejidad O(n)
 En el segundo caso, si el tipo enum genero es c, queda complejidad ¿¿O(n + c) u O(n*c)??
