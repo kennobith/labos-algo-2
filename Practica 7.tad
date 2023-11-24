@@ -339,3 +339,62 @@ modulo relaciones101 { //qué original el nombre
 
  3. Podemos usar la matInfImpl, pero en vez de 1's y 0's, True y False.
  No sé si hay una mejor estructura.
+
+-----------------------------------------
+modulo Sistema {
+    materiasConNotas DiccionarioAVL<materia, Vector<int>>
+    materiasPorAlumno DiccionarioTrie<alumno, DiccionarioAVL<materia, nota>>
+
+Observaciones:
+- Para cada materia tengo un array de 10 posiciones donde cuento cuántos alumnos se sacaron esa nota. Al registrar una nota sumo uno
+- Guardo las notas de un alumno en un diccionario de trie. Las agrego al final. Fijarse que la complejidad no se va, porque buscar/añadir en un Trie es O(tamaño de la clave), 
+pero como las claves están acotadas, termina quedando por la búsqueda dentro del DiccionarioAVL es O(m)
+
+    proc crearSistema(in alumnos: conjLineal<Alumno>) { // no lo pide pero who cares O(alumnos.length * log(alumnos.length))
+        res.materiasConNotas := new DiccionarioTrie();
+        res.materiasPorAlumno := new DiccionarioAVL();
+        for(int i = 0; i < alumnos.length, i++) {
+            dicc := new DiccionarioAVL();
+            res.materiasPorAlumno.definir(alumno,dicc);
+        }
+    }
+    proc RegistrarMateria(inout s: Sistema, in m: materia) {
+        notas := new vectorVacio();
+        for (int i = 0; i < 11; i++) { // O(11) = O(1)
+            notas.agregarAtras(0);
+        }
+        s.materiasConNotas.definir(m,notas); // O(log(m));
+    }
+
+    proc RegistrarNota(inout s: Sistema, in m: materia, in a: alumno, in n: nota) { //como precondicion la materia esta definida en el sistema y el alumno podo o no haber sido calificado antes en la misma
+        cant_ant := s.materiasConNotas.obtener(m).obtener(n); // O(log(m))
+        s.materiasConNotas..obtener(m).modificarPosicion(n,cant_ant++); // O(log(m))
+
+        dicc_materias := s.materiasPorAlumno.obtener(a);  // O(log(m))
+        está_materia := dicc_materias.esta(materia); // O(log(m))
+        dicc_materias.definir(materia,nota)// O(log(m))
+    }
+
+    proc NotaDeAlumno(in s: Sistema, in a: alumno, m: materia): nota {
+        res := s.materiasPorAlumno.obtener(alumno).obtener(materia); // O(log(m)) + O(log(m)) = O(log(m))
+        return res;
+    }
+
+    proc CantAlumnosConNota(in s: Sistema, in m: materia): nat {
+        notas_materia := s.materiasConNotas.obtener(m); // O(log(m))
+        sum := 0;
+        for(int i = 0; i < 11; i++) { // O(1)
+            sum += notas_materias[i];
+        }
+        return sum;
+    }
+
+    proc CantAlumnosAprobados(in s: Sistema, in m: materia): nat {
+        notas_materia := s.materiasConNotas.obtener(m); // O(log(m))
+        sum := 0; 
+        for(int i = 7; i < 11; i++) { // O(1)
+            sum += notas_materias[i];
+        }
+        return sum;
+    }
+}
